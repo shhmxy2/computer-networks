@@ -13,7 +13,7 @@ class ClientSocket:
         print("Connected to server")
         return self
 
-    async def run(self):
+    def run(self):
         while True:
             to_send = input("Try to guess number: ")
             self.send_message(to_send.encode())
@@ -23,8 +23,6 @@ class ClientSocket:
             print("Received: ", data)
             if data == "Congratulations! You guessed the number!":
                 break
-
-    def close(self):
         self.clientsocket.close()
 
     def send_message(self, message):
@@ -34,3 +32,6 @@ class ClientSocket:
     def receive_message(self, buffer_size):
         data = self.clientsocket.recv(buffer_size)
         return data
+    
+    def close(self):
+        self.clientsocket.close()

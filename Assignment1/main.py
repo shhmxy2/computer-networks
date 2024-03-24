@@ -1,14 +1,12 @@
-from server import ServerSocket
+#from server import ServerSocket
 from client import ClientSocket
+import subprocess
 
-async def start_a_new_game():
-    serversocket = ServerSocket().start()
-    clientsocket = ClientSocket().start()
+def start_a_new_game():
+    clientserver = ClientSocket().start()
     print("The game has started!")
-    await asyncio.gather(serversocket.run(), clientsocket.run())
-    
-    clientsocket.close()  # close the client socket
-    serversocket.close()  # close the server socket
+    clientserver.run()
+    clientserver.close()
 
 def main():
     while True:

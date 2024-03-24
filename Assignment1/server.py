@@ -1,5 +1,6 @@
 import socket
 import random
+import argparse
 
 class ServerSocket:
     def __init__(self):
@@ -16,14 +17,40 @@ class ServerSocket:
         print("Server is listening on port 8080")
         # become a server socket
         self.serversocket.listen(1)
+        return self
+    
+    def easy_mode_response(self, data):
+        if data < self.number:
+            message = "The number is greater than " + str(data)
+        elif data > self.number:
+            message = "The number is less than " + str(data)
+        else:
+            message = "Congratulations! You guessed the number!"
+        return message 
+
+    def hard_mode_response(self, data, seed):
+        lie = random.randint(1, 100)
+        if data < self.number:
+            if lie > seed:
+                message = "The number is greater than " + str(data)
+            else:
+                message = "The number is less than " + str(data)
+        elif data > self.number:
+            if lie > seed:
+                message = "The number is less than " + str(data)
+            else:
+                message = "The number is greater than " + str(data)
+        else:
+            message = "Congratulations! You guessed the number!"
+        return message 
+    
+    def run(self, difficulty, seed):
+        print("Waiting for client to connect...")
+        conn, address = self.serversocket.accept()  # accept new connection
+        print("Connection from: ", address)
         # determine the answer
         self.number = random.randint(1, 100)
         print("The answer is:", self.number)
-        return self
-    
-    async def run(self):
-        conn, address = self.serversocket.accept()  # accept new connection
-        print("Connection from: ", address)
 
         while True:
             # receive data stream. it won't accept data packet greater than 1024 bytes
@@ -33,12 +60,10 @@ class ServerSocket:
                 break
             data = int(data)
             print("Received: ", data)
-            if data < self.number:
-                message = "The number is greater than " + str(data)
-            elif data > self.number:
-                message = "The number is less than " + str(data)
+            if difficulty == 'easy':
+                message = self.easy_mode_response(data)
             else:
-                message = "Congratulations! You guessed the number!"
+                message = self.hard_mode_response(data, seed)
             conn.send(message.encode())  # send data to the client
             print("Sent: ", message)
             if message == "Congratulations! You guessed the number!":
@@ -48,3 +73,12 @@ class ServerSocket:
     
     def close(self):
         self.serversocket.close()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='游戏参数设置')
+    parser.add_argument('--difficulty', choices=['easy', 'hard'], default='easy', help='设置游戏的难度模式')
+    parser.add_argument('--seed', type=int, default=50, help='设置撒谎概率')
+    args = parser.parse_args()
+    serversocket = ServerSocket().start()
+    while True:
+        serversocket.run(args.difficulty, args.seed)
